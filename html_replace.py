@@ -2,7 +2,7 @@ import json
 import pandas as pd
 from bs4 import BeautifulSoup
 import re
-import os # Ajout de la bibliothèque 'os' pour manipuler les chemins de fichiers
+import os
 
 def update_kepler_html(html_path, csv_path, output_path, dataset_label):
     """
@@ -11,7 +11,7 @@ def update_kepler_html(html_path, csv_path, output_path, dataset_label):
     try:
         # --- 1. Lecture du fichier CSV ---
         print(f"Lecture du fichier CSV : {csv_path}")
-        df = pd.read_csv(csv_path, encoding='latin-1', sep=',')
+        df = pd.read_csv(csv_path, encoding='latin-1') # Utilise la virgule par défaut
 
         # Conversion du DataFrame pour Kepler.gl
         new_all_data = [df.columns.tolist()] + df.values.tolist()
@@ -45,17 +45,25 @@ def update_kepler_html(html_path, csv_path, output_path, dataset_label):
 
         # --- 4. Remplacement du dataset CSV ---
         csv_found = False
+        # --- LIGNE DE DÉBOGAGE AJOUTÉE ---
+        print(f"\n-> Je cherche le dataset avec le label EXACT : '{dataset_label}'")
+        
         for dataset in map_datasets:
             label = dataset.get('info', {}).get('label') or dataset.get('data', {}).get('label')
+            # --- LIGNE DE DÉBOGAGE AJOUTÉE ---
+            print(f"  - Je vérifie le label trouvé dans le HTML : '{label}'")
+            
             if label == dataset_label:
-                print(f"Dataset '{dataset_label}' trouvé. Remplacement des données...")
                 dataset['data']['allData'] = new_all_data
                 dataset['data']['fields'] = new_fields
                 csv_found = True
                 break
         
-        if not csv_found:
-            raise ValueError(f"Le dataset '{dataset_label}' n'a pas été trouvé dans le HTML.")
+        # --- LIGNES DE DÉBOGAGE AJOUTÉE ---
+        if csv_found:
+            print("--> SUCCÈS : Le dataset a été trouvé et remplacé !")
+        else:
+            print("--> ATTENTION : Le dataset n'a PAS été trouvé. Aucune modification ne sera effectuée.")
 
         # --- 5. Réinjection des données mises à jour ---
         updated_datasets_str = json.dumps(map_datasets, separators=(',', ':'))
@@ -75,21 +83,10 @@ def update_kepler_html(html_path, csv_path, output_path, dataset_label):
 
 # --- POINT D'ENTRÉE DU SCRIPT ---
 if __name__ == '__main__':
-    # --- Configuration Simplifiée ---
-    # Vous n'avez plus que 3 chemins à vérifier.
-    
-    # 1. Le fichier HTML original qui sert de modèle
     HTML_SOURCE_PATH = 'index.html'
-    
-    # 2. Le fichier CSV avec les données mises à jour
     CSV_SOURCE_PATH = 'flow_final.csv'
-    
-    # 3. Le fichier HTML final qui sera généré
     HTML_OUTPUT_PATH = 'index.html'
 
-    # --- Exécution ---
-    # Le nom du dataset à remplacer est maintenant déduit automatiquement du chemin du fichier CSV.
-    # Plus besoin de le définir manuellement !
     dataset_label_to_find = os.path.basename(CSV_SOURCE_PATH)
     
     update_kepler_html(HTML_SOURCE_PATH, CSV_SOURCE_PATH, HTML_OUTPUT_PATH, dataset_label_to_find)
