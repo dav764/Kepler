@@ -1,0 +1,37 @@
+name: Mise à jour automatique de la carte Kepler
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # L'action se lance UNIQUEMENT si ce fichier est modifié.
+      - 'flow_final.csv'
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Récupération du code
+        uses: actions/checkout@v4
+
+      - name: 2. Mise en place de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 3. Installation des dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas beautifulsoup4 lxml
+
+      - name: 4. Exécution du script Python
+        run: python html_replace.py
+
+      - name: 5. Commit et Push de la carte mise à jour
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add 'index.html'
+          git diff --staged --quiet || git commit -m "Mise à jour automatique de la carte Kepler.gl"
+          git push
