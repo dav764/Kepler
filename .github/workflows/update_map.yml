@@ -11,6 +11,9 @@ on:
 jobs:
   build-and-commit:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
     steps:
       - name: 1. Récupération du code
         uses: actions/checkout@v4
