@@ -11,7 +11,7 @@ def update_kepler_html(html_path, csv_path, output_path, dataset_label):
     try:
         # --- 1. Lecture du fichier CSV ---
         print(f"Lecture du fichier CSV : {csv_path}")
-        df = pd.read_csv(csv_path, encoding='latin-1') # Utilise la virgule par défaut
+        df = pd.read_csv(csv_path, encoding='utf-8') # Utilise la virgule par défaut
 
         # Conversion du DataFrame pour Kepler.gl
         new_all_data = [df.columns.tolist()] + df.values.tolist()
